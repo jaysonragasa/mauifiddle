@@ -1,0 +1,148 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	x:Class="MAUIFiddle.MainPage"
+	xmlns:behaviors="clr-namespace:MAUIFiddle"
+	Title="Fiddle">
+
+	<ContentPage.ToolbarItems>
+		<ToolbarItem
+			Text="📃"
+			Clicked="ToolbarItem_Clicked" />
+		<ToolbarItem
+			Text="📂"
+			Clicked="ToolbarItem_Clicked" />
+		<ToolbarItem
+			Text="💾"
+			Clicked="ToolbarItem_Clicked" />
+		<ToolbarItem
+			Text="❌"
+			Clicked="ToolbarItem_Clicked" />
+	</ContentPage.ToolbarItems>
+
+	<Grid
+		BackgroundColor="#FF16171D">
+		<!--<Image
+			Source="tissue.png" 
+			Aspect="AspectFill"/>-->
+
+		<Grid
+			RowDefinitions="Auto, 2*, *, Auto">
+
+			<Grid
+				HeightRequest="32"
+				ColumnDefinitions="*, *"
+				Padding="10,0">
+				<VerticalStackLayout>
+					<!--<Label
+						Text="C# Code (CTRL+SHIFT+TAB to add tab)"
+						FontAttributes="Bold"
+						Grid.Row="0"
+						TextColor="White" />-->
+					<!--<Label
+						Text="CurrentPage"
+						FontAttributes="Bold"
+						Grid.Row="0"
+						TextColor="White" />-->
+					<Label />
+				</VerticalStackLayout>
+
+				<Slider
+					Grid.Column="1"
+					x:Name="fontSizeSlider"
+					VerticalOptions="Center"
+					Maximum="20"
+					Value="13"
+					Minimum="10" />
+			</Grid>
+
+			<ScrollView
+				Orientation="Vertical"
+				Grid.Row="1">
+				<Grid
+					BackgroundColor="#FF2A2A37"
+					ColumnDefinitions="auto, *">
+
+					<Border
+						Grid.Column="0"
+						BackgroundColor="#FF16161D"
+						StrokeThickness="0"
+						>
+						<Editor
+							Margin="5,0,0,0"
+							FontSize="{Binding Value, Source={x:Reference fontSizeSlider}}"
+							FontFamily="MPLUSCodeLatin" 
+							Text="1"
+							TextColor="#FF2AA0A4"
+							x:Name="lineNumber"
+							IsReadOnly="True"
+							/>
+					</Border>
+					
+					<Editor
+						Grid.Column="1"
+						x:Name="CodeEditor"
+						FontSize="{Binding Value, Source={x:Reference fontSizeSlider}}"
+						Text="// Write C# code here"
+						Margin="5,0"
+						IsSpellCheckEnabled="False"
+						TextColor="#FF92CAF4"
+						AutoSize="TextChanges"
+						IsTextPredictionEnabled="False"
+						TextChanged="CodeEditor_TextChanged"
+						FontFamily="MPLUSCodeLatin"
+						
+						>
+						<Editor.Behaviors>
+							<behaviors:EditorStoppedTypingBehavior
+								DelayMilliseconds="500"
+								StoppedTyping="EditorStoppedTypingBehavior_StoppedTyping" />
+						</Editor.Behaviors>
+					</Editor>
+					<!--<WebView
+					x:Name="CodeEditor"
+					Source="editor.html" />-->
+				</Grid>
+			</ScrollView>
+
+			<Grid
+				Grid.Row="2"
+				RowDefinitions="auto, *"
+				BackgroundColor="#FF1F1F28">
+				<VerticalStackLayout
+					HorizontalOptions="Start"
+					Margin="5">
+					<Label
+						Text="Output" 
+						TextColor="White"
+						/>
+					<Border
+						HeightRequest="4"
+						StrokeThickness="0"
+						BackgroundColor="#FF2AA0A4"
+						Margin="0,3,0,0" />
+				</VerticalStackLayout>
+
+				<ScrollView
+					Grid.Row="1">
+					<Editor
+						x:Name="OutputLabel"
+						Margin="5"
+						IsReadOnly="True"
+						AutoSize="TextChanges"
+						FontFamily="MPLUSCodeLatin"
+						FontSize="{Binding Value, Source={x:Reference fontSizeSlider}}"
+						TextColor="#FFC3D7A8" />
+				</ScrollView>
+			</Grid>
+
+			<Grid
+				Grid.Row="3"
+				HeightRequest="32">
+
+			</Grid>
+		</Grid>
+	</Grid>
+
+</ContentPage>

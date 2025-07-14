@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<style>
+		body {
+			font-family: sans-serif;
+			padding: 0;
+			margin: 0;
+		}
+
+		#editor {
+			min-height: 400px;
+			border: 1px solid #ccc;
+			padding: 10px;
+			margin: 0;
+		}
+	</style>
+</head>
+<body>
+	<div id="editor" contenteditable="true">Hello, <b>WYSIWYG</b> world!</div>
+
+	<script>
+    function format(command) {
+      document.execCommand(command, false, null);
+    }
+
+    function getHtml() {
+      return document.getElementById('editor').innerHTML;
+    }
+
+    function setHtml(html) {
+      document.getElementById('editor').innerHTML = html;
+    }
+	</script>
+</body>
+</html>
