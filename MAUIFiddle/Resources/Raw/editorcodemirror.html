@@ -32,17 +32,27 @@
 			lineNumbers: true,
 			mode: "javascript",
 			theme: "material-darker",
+			indentWithTabs: true,
+			indentUnit: 3,       // This defines the visual width of a tab character
+			tabSize: 3,          // Also controls how wide a tab appears
 		});
 
 		window.getEditorContent = function () {
 			return editor.getValue();
 		};
 
+		function decodeHtml(html) {
+			const t = document.createElement("textarea");
+			t.innerHTML = html;
+			return t.value;
+		}
+
 		// Make accessible from MAUI
 		window.setEditorText = function (text) {
 			if (editor) {
-				var decoded = decodeURIComponent(text);
-				decoded = decoded.replace(/\+/g, " ");
+				var code = text.replace(/\+/g, " ");
+				var decoded = decodeURIComponent(code);
+				//decoded = decoded.replace(/\+/g, " ");
 				editor.setValue(decoded);
 			}
 		};

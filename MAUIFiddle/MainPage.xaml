@@ -3,22 +3,25 @@
 	xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 	x:Class="MAUIFiddle.MainPage"
+	xmlns:ctl="clr-namespace:MAUIFiddle.Controls"
 	xmlns:behaviors="clr-namespace:MAUIFiddle"
-	Title="Fiddle">
+	xmlns:local="clr-namespace:MAUIFiddle"
+	Title="Fiddle"
+	x:DataType="local:MainPage">
 
 	<ContentPage.ToolbarItems>
 		<ToolbarItem
 			Text="📃"
-			Clicked="ToolbarItem_Clicked" />
+			Command="{Binding NewCommand}" />
 		<ToolbarItem
 			Text="📂"
-			Clicked="ToolbarItem_Clicked" />
+			Command="{Binding OpenCommand}" />
 		<ToolbarItem
 			Text="💾"
-			Clicked="ToolbarItem_Clicked" />
-		<ToolbarItem
+			Command="{Binding SaveCommand}" />
+		<!--<ToolbarItem
 			Text="❌"
-			Clicked="ToolbarItem_Clicked" />
+			Clicked="ToolbarItem_Clicked" />-->
 	</ContentPage.ToolbarItems>
 
 	<Grid
@@ -28,8 +31,9 @@
 	Aspect="AspectFill"/>-->
 
 		<Grid
-			RowDefinitions="Auto, 2*, *, Auto">
+			RowDefinitions="Auto, 2*, Auto, Auto, Auto">
 
+			<!--toolbar-->
 			<Grid
 				HeightRequest="32"
 				ColumnDefinitions="*, *"
@@ -47,26 +51,65 @@
 				TextColor="White" />-->
 					<Label />
 				</VerticalStackLayout>
+				<HorizontalStackLayout>
+					<HorizontalStackLayout>
+						<CheckBox
+							x:Name="cbUseLegacyEditor"
+							VerticalOptions="Center" />
+						<Label
+							Text="Legacy Editor"
+							TextColor="White"
+							VerticalOptions="Center"
+							Margin="-10,0,0,0" />
+					</HorizontalStackLayout>
 
-				<Slider
-					Grid.Column="1"
-					x:Name="fontSizeSlider"
-					VerticalOptions="Center"
-					Maximum="20"
-					Value="13"
-					Minimum="10" />
+					<Border
+						WidthRequest="2"
+						Margin="20,4,15,4" />
+
+					<HorizontalStackLayout>
+						<CheckBox
+							IsChecked="True"
+							x:Name="cbAutoRun"
+							VerticalOptions="Center" />
+						<Label
+							Text="Auto Run"
+							TextColor="White"
+							VerticalOptions="Center"
+							Margin="-10,0,0,0" />
+					</HorizontalStackLayout>
+
+					<Border
+						WidthRequest="2"
+						Margin="20,4,15,4" />
+
+					<ctl:TemplatedButton
+						Command="{Binding RunCommand}">
+						<HorizontalStackLayout>
+							<Image
+								Source="playbuttonred.png"
+								WidthRequest="24"
+								HeightRequest="24"
+								Aspect="AspectFit" />
+							<Label
+								Text="Run"
+								TextColor="White"
+								VerticalOptions="Center" />
+						</HorizontalStackLayout>
+					</ctl:TemplatedButton>
+				</HorizontalStackLayout>
 			</Grid>
 
+			<!--legacy editor-->
 			<ScrollView
 				Orientation="Vertical"
 				Grid.Row="1"
-				IsVisible="False">
+				IsVisible="{Binding IsChecked, Source={x:Reference cbUseLegacyEditor}}">
 				<Grid
 					BackgroundColor="#FF2A2A37"
 					ColumnDefinitions="auto, *">
 
 					<Border
-						IsVisible="False"
 						Grid.Column="0"
 						BackgroundColor="#FF16161D"
 						StrokeThickness="0">
@@ -91,8 +134,7 @@
 						AutoSize="TextChanges"
 						IsTextPredictionEnabled="False"
 						TextChanged="CodeEditor_TextChanged"
-						FontFamily="MPLUSCodeLatin"
-						IsVisible="False">
+						FontFamily="MPLUSCodeLatin">
 						<Editor.Behaviors>
 							<behaviors:EditorStoppedTypingBehavior
 								DelayMilliseconds="500"
@@ -102,31 +144,56 @@
 				</Grid>
 			</ScrollView>
 
+			<!--webview editor-->
 			<WebView
 				x:Name="HtmlCodeEditor"
 				BackgroundColor="#FF16171D"
+				IsVisible="{Binding IsChecked, Source={x:Reference cbUseLegacyEditor}, Converter={StaticResource ToReverseBooleanConverter}}"
 				Grid.Row="1" />
 
+			<!--center toolbar-->
 			<Grid
 				Grid.Row="2"
+				HeightRequest="34">
+				<Slider
+					Grid.Column="1"
+					x:Name="fontSizeSlider"
+					VerticalOptions="Center"
+					Maximum="20"
+					Value="13"
+					Minimum="10" />
+			</Grid>
+
+			<!--output-->
+			<Grid
+				Grid.Row="3"
 				RowDefinitions="auto, *"
 				BackgroundColor="#FF1F1F28">
-				<VerticalStackLayout
-					HorizontalOptions="Start"
-					Margin="5">
-					<Label
-						Text="Output"
-						TextColor="White" />
-					<Border
-						HeightRequest="4"
-						StrokeThickness="0"
-						BackgroundColor="#FF2AA0A4"
-						Margin="0,3,0,0" />
-				</VerticalStackLayout>
+				<HorizontalStackLayout>
+					<CheckBox
+						VerticalOptions="Center"
+						x:Name="cbShowOutput"
+						IsChecked="True" />
+					<VerticalStackLayout
+						VerticalOptions="Center"
+						HorizontalOptions="Start"
+						Margin="-10,0,0,0">
+						<Label
+							Text="Output"
+							TextColor="White" />
+						<Border
+							HeightRequest="4"
+							StrokeThickness="0"
+							BackgroundColor="#FF2AA0A4"
+							Margin="0,3,0,0" />
+					</VerticalStackLayout>
+				</HorizontalStackLayout>
 
 				<ScrollView
+					IsVisible="{Binding IsChecked, Source={x:Reference cbShowOutput}}"
 					Grid.Row="1"
-					MaximumHeightRequest="200">
+					MaximumHeightRequest="200"
+					MinimumHeightRequest="200">
 					<Editor
 						x:Name="OutputLabel"
 						Margin="5"
@@ -139,7 +206,7 @@
 			</Grid>
 
 			<Grid
-				Grid.Row="3"
+				Grid.Row="4"
 				HeightRequest="32">
 
 			</Grid>

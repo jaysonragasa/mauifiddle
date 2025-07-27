@@ -1,36 +1,116 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+﻿using CommunityToolkit.Maui.Storage;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Input;
 
 namespace MAUIFiddle;
 
 public partial class MainPage : ContentPage
 {
+	#region commands
+	public ICommand RunCommand { get; set; }
+	public ICommand NewCommand { get; set; }
+	public ICommand SaveCommand { get; set; }
+	public ICommand OpenCommand { get; set; }
+	#endregion
+
 	public MainPage()
 	{
 		InitializeComponent();
+		InitCommands();
+		BindingContext = this;
 
 		CodeEditor.Text = @"Print(""Start writing your code"")";
 
 		fontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
+		cbUseLegacyEditor.CheckedChanged += CbUseLegacyEditor_CheckedChanged;
 	}
 
-	private async void FontSizeSlider_ValueChanged(object? sender, ValueChangedEventArgs e)
+	#region command methods
+	public async Task RunCode()
 	{
-		await HtmlCodeEditor.EvaluateJavaScriptAsync($"setEditorFontSize({e.NewValue});");
+		await ExecuteCodeAsync();
 	}
 
+	public async Task NewCodeAsync()
+	{
+		NewCSharpCode();
+	}
+
+	public async Task SaveCodeAsync()
+	{
+		//var code = CodeEditor.Text;
+		//var fileName = "MAUIFiddle.cs";
+		//var filePath = Path.Combine(FileSystem.CacheDirectory, fileName);
+		//await File.WriteAllTextAsync(filePath, code);
+		//await Shell.Current.DisplayAlert("File Saved", $"Your code has been saved to {filePath}", "OK");
+
+		var content = CodeEditor.Text;
+
+		// Prompt the user for a file path using CommunityToolkit FileSaver
+		var result = await FileSaver.Default.SaveAsync(
+			"CodeFile.cs",
+			new MemoryStream(Encoding.UTF8.GetBytes(content)),
+			new CancellationToken()
+		);
+
+		if (result.IsSuccessful)
+		{
+			await DisplayAlert("Saved", $"File saved to: {result.FilePath}", "OK");
+		}
+		else
+		{
+			await DisplayAlert("Error", "File saving failed", "OK");
+		}
+	}
+
+	public async Task OpenCodeAsync()
+	{
+		var result = await FilePicker.Default.PickAsync(new PickOptions
+		{
+			PickerTitle = "Select a code file"
+		});
+
+		if (result is not null && result.FileName != null)
+		{
+			using var stream = await result.OpenReadAsync();
+			using var reader = new StreamReader(stream);
+
+			var text = await reader.ReadToEndAsync();
+
+			CodeEditor.Text = text;
+		}
+		else
+		{
+			await DisplayAlert("Error", "File opening cancelled or failed", "OK");
+		}
+	}
+	#endregion
+
+	#region overrides
 	protected override void OnAppearing()
 	{
 		base.OnAppearing();
 
 		LoadEditorHtml();
 	}
+	#endregion
 
-	private async void OnRunClicked(object sender, EventArgs e)
+	#region private methods
+	void InitCommands()
+	{
+		RunCommand = new AsyncRelayCommand(RunCode);
+		NewCommand = new AsyncRelayCommand(NewCodeAsync);
+		SaveCommand = new AsyncRelayCommand(SaveCodeAsync);
+		OpenCommand = new AsyncRelayCommand(OpenCodeAsync);
+	}
+
+	async Task ExecuteCodeAsync()
 	{
 		var code = CodeEditor.Text;
 
@@ -48,6 +128,84 @@ public partial class MainPage : ContentPage
 		}
 	}
 
+	async void LoadEditorHtml()
+	{
+		using var stream = await FileSystem.OpenAppPackageFileAsync("editorcodemirror.html");
+		using var reader = new StreamReader(stream);
+		var htmlString = reader.ReadToEnd();
+		HtmlCodeEditor.Source = new HtmlWebViewSource { Html = htmlString };
+
+		HtmlCodeEditor.Navigating += (s, e) =>
+		{
+			string url = e.Url ?? string.Empty;
+
+			if (string.IsNullOrWhiteSpace(url)) return;
+
+			Debug.WriteLine(url);
+
+			if (url.StartsWith("callback://editor/?text="))
+			{
+				if (cbUseLegacyEditor.IsChecked)
+				{
+					e.Cancel = true;
+					return;
+				}
+
+				var content = Uri.UnescapeDataString(url.Substring("callback://editor/?text=".Length));
+				e.Cancel = true;
+
+				CodeEditor.Text = content;
+			}
+			else if (url.StartsWith("callback://editor/?status=done"))
+			{
+				NewCSharpCode();
+				e.Cancel = true;
+			}
+		};
+	}
+
+	async void NewCSharpCode()
+	{
+		string code = @"using System;
+
+public class Say
+{
+	public static void Hello()
+		=> Console.WriteLine(""Hello World"");
+}
+
+Say.Hello();
+
+ContentPage cp = new ContentPage();
+Image img = new Image() { Source = ""dotnet_bot.png"", HeightRequest = 185d, Aspect = Microsoft.Maui.Aspect.AspectFit };
+Label label = new Label() { Text = ""Welcome to &#10;.NET Multi-platform App UI"", HorizontalOptions = LayoutOptions.Center };
+Button btn = new() { Text = ""Back"", HorizontalOptions = LayoutOptions.Center }; btn.Clicked += (s, e) => CurrentPage.Navigation.PopAsync();
+VerticalStackLayout vsl = new() { Spacing = 25 };
+vsl.Children.Add(img);
+vsl.Children.Add(label);
+vsl.Children.Add(btn);
+cp.Content = vsl;
+// CurrentPage.Navigation.PushAsync(cp);
+// CurrentPage.Navigation.PushModalAsync(cp);";
+
+		if (cbUseLegacyEditor.IsChecked)
+			CodeEditor.Text = code;
+		else
+			await SendCodeToHtmlEditor(code);
+	}
+	#endregion
+
+	#region event triggered methods
+	private async void FontSizeSlider_ValueChanged(object? sender, ValueChangedEventArgs e)
+	{
+		await HtmlCodeEditor.EvaluateJavaScriptAsync($"setEditorFontSize({e.NewValue});");
+	}
+
+	/// <summary>
+	/// Creates a lazy line number display for the code editor.
+	/// </summary>
+	/// <param name="sender"></param>
+	/// <param name="e"></param>
 	private void CodeEditor_TextChanged(object sender, TextChangedEventArgs e)
 	{
 		var editor = (Editor)sender;
@@ -69,63 +227,40 @@ public partial class MainPage : ContentPage
 		lineNumber.Text = sb.ToString();
 	}
 
-	private void ToolbarItem_Clicked(object sender, EventArgs e)
+	private async void EditorStoppedTypingBehavior_StoppedTyping(object sender, string e)
 	{
-		NewCSharpCode();
+		if (cbAutoRun.IsChecked)
+			await ExecuteCodeAsync();
+
+		if (cbUseLegacyEditor.IsChecked)
+			await SendCodeToHtmlEditor(CodeEditor.Text);
 	}
 
-	async void NewCSharpCode()
+	async Task SendCodeToHtmlEditor(string code)
 	{
-		string code = @"using System;
-
-public class Say
-{
-	public static void Hello()
-	{
-		Console.WriteLine(""Hello World"");
-	}
-}
-
-Say.Hello();";
-
-		code = System.Web.HttpUtility.UrlEncode(code);
-		await HtmlCodeEditor.EvaluateJavaScriptAsync($"setEditorText(\"{code}\");");
-	}
-
-	private void EditorStoppedTypingBehavior_StoppedTyping(object sender, string e)
-	{
-		OnRunClicked(sender, new EventArgs());
-	}
-
-	async void LoadEditorHtml()
-	{
-		using var stream = await FileSystem.OpenAppPackageFileAsync("editorcodemirror.html");
-		using var reader = new StreamReader(stream);
-		var htmlString = reader.ReadToEnd();
-		HtmlCodeEditor.Source = new HtmlWebViewSource { Html = htmlString };
-
-		HtmlCodeEditor.Navigating += (s, e) =>
+		try
 		{
-			string url = e.Url ?? string.Empty;
-
-			if (string.IsNullOrWhiteSpace(url)) return;
-
-			Debug.WriteLine(url);
-
-			if (url.StartsWith("callback://editor/?text="))
-			{
-				var content = Uri.UnescapeDataString(url.Substring("callback://editor/?text=".Length));
-				e.Cancel = true;
-
-				CodeEditor.Text = content;
-			}
-			else if (url.StartsWith("callback://editor/?status=done"))
-			{
-				NewCSharpCode();
-				e.Cancel = true;
-			}
-		};
+			code = System.Web.HttpUtility.UrlEncode(code);
+			//code = System.Web.HttpUtility.HtmlEncode(code);
+			await HtmlCodeEditor.EvaluateJavaScriptAsync($"setEditorText(\"{code}\");");
+		}
+		catch (Exception ex)
+		{
+			// just ignore something for now
+			Debug.WriteLine(ex.Message);
+		}
 	}
+
+	private async void CbUseLegacyEditor_CheckedChanged(object? sender, CheckedChangedEventArgs e)
+	{
+		bool ischecked = e.Value;
+
+		if (!ischecked)
+		{
+			await SendCodeToHtmlEditor(CodeEditor.Text);
+		}
+	}
+	#endregion
 }
 
 public class ScriptGlobals
