@@ -21,7 +21,7 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>MAUIFiddle</ApplicationTitle>
+		<ApplicationTitle>KōhīKōdo 🍵</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.mauifiddle</ApplicationId>

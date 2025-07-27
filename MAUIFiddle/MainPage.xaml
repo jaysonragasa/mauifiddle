@@ -6,7 +6,7 @@
 	xmlns:ctl="clr-namespace:MAUIFiddle.Controls"
 	xmlns:behaviors="clr-namespace:MAUIFiddle"
 	xmlns:local="clr-namespace:MAUIFiddle"
-	Title="Fiddle"
+	Title="KōhīKōdo 🍵"
 	x:DataType="local:MainPage">
 
 	<ContentPage.ToolbarItems>
@@ -19,9 +19,6 @@
 		<ToolbarItem
 			Text="💾"
 			Command="{Binding SaveCommand}" />
-		<!--<ToolbarItem
-			Text="❌"
-			Clicked="ToolbarItem_Clicked" />-->
 	</ContentPage.ToolbarItems>
 
 	<Grid
@@ -57,7 +54,7 @@
 							x:Name="cbUseLegacyEditor"
 							VerticalOptions="Center" />
 						<Label
-							Text="Legacy Editor"
+							Text="Plain Text"
 							TextColor="White"
 							VerticalOptions="Center"
 							Margin="-10,0,0,0" />
