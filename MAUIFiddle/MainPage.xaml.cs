@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,22 +9,25 @@ namespace MAUIFiddle;
 
 public partial class MainPage : ContentPage
 {
-	DateTime _lastExec = DateTime.MinValue;
-	int delayBeforeExecute = 10; // Delay in milliseconds before executing the code
-
 	public MainPage()
 	{
 		InitializeComponent();
-		NewCSharpCode();
+
+		CodeEditor.Text = @"Print(""Start writing your code"")";
+
+		fontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
+	}
+
+	private async void FontSizeSlider_ValueChanged(object? sender, ValueChangedEventArgs e)
+	{
+		await HtmlCodeEditor.EvaluateJavaScriptAsync($"setEditorFontSize({e.NewValue});");
 	}
 
 	protected override void OnAppearing()
 	{
 		base.OnAppearing();
-		_lastExec = DateTime.Now;
-		
-		//OnRunClicked(this, null);
-		//LoadEditorHtml();
+
+		LoadEditorHtml();
 	}
 
 	private async void OnRunClicked(object sender, EventArgs e)
@@ -44,34 +48,9 @@ public partial class MainPage : ContentPage
 		}
 	}
 
-	private int _previousTextLength = 0;
 	private void CodeEditor_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		////int tabCount = GetCurrentLineTabIndentation((Editor)sender);
-		////Debug.WriteLine(tabCount);
-
 		var editor = (Editor)sender;
-
-		//// Detect Enter key (new \n character added)
-		//if (editor.Text.Length > _previousTextLength &&
-		//	editor.CursorPosition > 0 &&
-		//	editor.Text[editor.CursorPosition - 1] == '\r')
-		//{
-		//	// Count tabs in the current (previous) line
-		//	int tabCount = GetTabCountInPreviousLine(editor);
-
-		//	// Build the tab string
-		//	string tabs = new string('\t', tabCount);
-
-		//	// Insert tabs at current cursor position
-		//	int cursorPos = editor.CursorPosition;
-		//	editor.Text = editor.Text.Insert(cursorPos, tabs);
-
-		//	// Move cursor after the inserted tabs
-		//	editor.CursorPosition = cursorPos + tabs.Length;
-		//}
-
-		//_previousTextLength = editor.Text?.Length ?? 0;
 
 		// lines
 		int lines = 0;
@@ -83,7 +62,7 @@ public partial class MainPage : ContentPage
 #endif
 			).Count();
 		StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < lines; i++)
+		for (int i = 0; i < lines; i++)
 		{
 			sb.AppendLine((i + 1).ToString());
 		}
@@ -93,13 +72,11 @@ public partial class MainPage : ContentPage
 	private void ToolbarItem_Clicked(object sender, EventArgs e)
 	{
 		NewCSharpCode();
-		//Shell.Current.CurrentPage.Navigation.PushModalAsync();
-		//var a = new ContentPage().LoadFromXaml("asd");
 	}
 
-	void NewCSharpCode()
+	async void NewCSharpCode()
 	{
-		CodeEditor.Text = @"using System;
+		string code = @"using System;
 
 public class Say
 {
@@ -110,61 +87,9 @@ public class Say
 }
 
 Say.Hello();";
-	}
 
-	private int GetTabCountInPreviousLine(Editor editor)
-	{
-		string text = editor.Text;
-		int cursorIndex = editor.CursorPosition;
-
-		if (string.IsNullOrEmpty(text) || cursorIndex <= 0)
-			return 0;
-
-		// Find start of the previous line
-		int prevLineEnd = text.LastIndexOf('\r', Math.Max(0, cursorIndex - 2));
-		int prevLineStart = (prevLineEnd == -1) ? 0 : text.LastIndexOf('\n', Math.Max(0, prevLineEnd - 1)) + 1;
-
-		if (prevLineStart < 0) prevLineStart = 0;
-		if (prevLineEnd < 0) prevLineEnd = text.Length;
-
-		string prevLine = text.Substring(prevLineStart, prevLineEnd - prevLineStart + 1);
-		return prevLine.Count(c => c == '\t');
-	}
-
-	public int GetCurrentLineTabIndentation(Editor editor)
-	{
-		// 1. Get the current state of the editor
-		string text = editor.Text;
-		int cursorPosition = editor.CursorPosition;
-
-		// Handle edge cases where text is null, empty, or cursor is at the start
-		if (string.IsNullOrEmpty(text) || cursorPosition == 0)
-		{
-			return 0;
-		}
-
-		// 2. Find the start of the current line.
-		// We search backwards from the character *before* the cursor for a newline character ('\n').
-		// If no newline is found, it means we are on the first line, so the start is index 0.
-		// We add 1 to move past the newline character itself.
-		int lineStartIndex = text.LastIndexOf('\r', cursorPosition - 1) + 1;
-
-		// 3. Count the leading tabs from the start of the line.
-		int tabCount = 0;
-		for (int i = lineStartIndex; i < text.Length; i++)
-		{
-			if (text[i] == '\t') // The tab character
-			{
-				tabCount++;
-			}
-			else
-			{
-				// Stop counting as soon as a non-tab character is found
-				break;
-			}
-		}
-
-		return tabCount;
+		code = System.Web.HttpUtility.UrlEncode(code);
+		await HtmlCodeEditor.EvaluateJavaScriptAsync($"setEditorText(\"{code}\");");
 	}
 
 	private void EditorStoppedTypingBehavior_StoppedTyping(object sender, string e)
@@ -172,15 +97,32 @@ Say.Hello();";
 		OnRunClicked(sender, new EventArgs());
 	}
 
-	//async void LoadEditorHtml()
-	//{
-	//	var assembly = typeof(MainPage).GetTypeInfo().Assembly;
-	//	using var stream = await FileSystem.OpenAppPackageFileAsync("editor.html");
-	//	//var stream = assembly.GetManifestResourceStream("MAUIFiddle.editor.html");
-	//	using var reader = new StreamReader(stream);
-	//	var htmlString = reader.ReadToEnd();
-	//	CodeEditor.Source = new HtmlWebViewSource { Html = htmlString };
-	//}
+	async void LoadEditorHtml()
+	{
+		using var stream = await FileSystem.OpenAppPackageFileAsync("editor.html");
+		using var reader = new StreamReader(stream);
+		var htmlString = reader.ReadToEnd();
+		HtmlCodeEditor.Source = new HtmlWebViewSource { Html = htmlString };
+
+		HtmlCodeEditor.Navigating += (s, e) =>
+		{
+			string url = e.Url ?? string.Empty;
+
+			Debug.WriteLine(url);
+
+			if (url.StartsWith("callback://editor/?text="))
+			{
+				var content = Uri.UnescapeDataString(e.Url.Substring("callback://editor/?text=".Length));
+				e.Cancel = true;
+
+				CodeEditor.Text = content;
+			}
+			else if (url.StartsWith("callback://editor/?status=done"))
+			{
+				NewCSharpCode();
+			}
+		};
+	}
 }
 
 public class ScriptGlobals
@@ -276,8 +218,8 @@ public class Tissuevaluator
 			//	);
 			//var state = await script.RunAsync(globals, globals.CancellationToken);
 			await CSharpScript.EvaluateAsync(
-				code: code, 
-				options: BuildDefaultScriptOptions(), 
+				code: code,
+				options: BuildDefaultScriptOptions(),
 				globalsType: typeof(ScriptGlobals),
 				globals: globals,
 				cancellationToken: cancellationToken
@@ -285,7 +227,7 @@ public class Tissuevaluator
 
 			return output.ToString();
 		}
-		catch(Exception ex)
+		catch (Exception ex)
 		{
 			throw;
 		}

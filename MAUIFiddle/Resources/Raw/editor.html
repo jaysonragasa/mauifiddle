@@ -1,37 +1,95 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta charset="utf-8" />
 	<style>
-		body {
-			font-family: sans-serif;
+		html, body, #container {
+			height: 100%;
+			margin: 0;
 			padding: 0;
-			margin: 0;
-		}
-
-		#editor {
-			min-height: 400px;
-			border: 1px solid #ccc;
-			padding: 10px;
-			margin: 0;
+			overflow: hidden;
 		}
 	</style>
 </head>
 <body>
-	<div id="editor" contenteditable="true">Hello, <b>WYSIWYG</b> world!</div>
+	<div id="container"></div>
 
+	<script src="./vs/loader.js"></script>
 	<script>
-    function format(command) {
-      document.execCommand(command, false, null);
-    }
+		require.config({ paths: { vs: './vs' } });
+		require(["vs/editor/editor.main"], function () {
+			window.editor = monaco.editor.create(document.getElementById("container"), {
+				language: "csharp",
+				theme: "vs-dark",
+				automaticLayout: true,
+				folding: true,
+				minimap: {
+					enabled: true
+				},
+				lineNumbers: "on"
+			});
 
-    function getHtml() {
-      return document.getElementById('editor').innerHTML;
-    }
+			// Listen to changes
+			window.editor.onDidChangeModelContent(function (event) {
+				const text = window.editor.getValue();
+				const content = encodeURIComponent(text);
+				window.location = "callback://editor?text=" + content;
+			});
 
-    function setHtml(html) {
-      document.getElementById('editor').innerHTML = html;
-    }
+			// Make accessible from MAUI
+			window.setEditorText = function (text) {
+				//alert(text);
+				if (window.editor) {
+					var decoded = decodeURIComponent(text);
+					decoded = decoded.replace(/\+/g, " ");
+					window.editor.setValue(decoded);
+				}
+			};
+
+			window.getEditorText = () => {
+				return window.editor.getValue();
+			};
+
+			window.setEditorFontSize = function (size) {
+				if (window.editor) {
+					window.editor.updateOptions({ fontSize: size });
+				}
+			};
+
+			/*
+			// Listen to changes
+			window.editor.onDidChangeModelContent(function (event) {
+				const text = window.editor.getValue();
+				console.log("Editor content changed:", text);
+
+				// Optionally, send to .NET MAUI
+				if (window.externalNotify) {
+					window.externalNotify(text);
+				}
+			});
+			*/
+
+			/*
+			window.editor.setValue([
+				"using System;",
+				"",
+				"namespace HelloWorld",
+				"{",
+				"    class Program",
+				"    {",
+				"        static void Main(string[] args)",
+				"        {",
+				"            Console.WriteLine(\"Hello World!\");",
+				"        }",
+				"    }",
+				"}"
+			].join("\n"));
+			*/
+
+			//window.editor.focus();
+
+			window.location = "callback://editor?status=done";
+		});
 	</script>
 </body>
 </html>

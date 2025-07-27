@@ -24,8 +24,8 @@
 	<Grid
 		BackgroundColor="#FF16171D">
 		<!--<Image
-			Source="tissue.png" 
-			Aspect="AspectFill"/>-->
+	Source="tissue.png" 
+	Aspect="AspectFill"/>-->
 
 		<Grid
 			RowDefinitions="Auto, 2*, *, Auto">
@@ -36,15 +36,15 @@
 				Padding="10,0">
 				<VerticalStackLayout>
 					<!--<Label
-						Text="C# Code (CTRL+SHIFT+TAB to add tab)"
-						FontAttributes="Bold"
-						Grid.Row="0"
-						TextColor="White" />-->
+				Text="C# Code (CTRL+SHIFT+TAB to add tab)"
+				FontAttributes="Bold"
+				Grid.Row="0"
+				TextColor="White" />-->
 					<!--<Label
-						Text="CurrentPage"
-						FontAttributes="Bold"
-						Grid.Row="0"
-						TextColor="White" />-->
+				Text="CurrentPage"
+				FontAttributes="Bold"
+				Grid.Row="0"
+				TextColor="White" />-->
 					<Label />
 				</VerticalStackLayout>
 
@@ -65,21 +65,20 @@
 					ColumnDefinitions="auto, *">
 
 					<Border
+						IsVisible="False"
 						Grid.Column="0"
 						BackgroundColor="#FF16161D"
-						StrokeThickness="0"
-						>
+						StrokeThickness="0">
 						<Editor
 							Margin="5,0,0,0"
 							FontSize="{Binding Value, Source={x:Reference fontSizeSlider}}"
-							FontFamily="MPLUSCodeLatin" 
+							FontFamily="MPLUSCodeLatin"
 							Text="1"
 							TextColor="#FF2AA0A4"
 							x:Name="lineNumber"
-							IsReadOnly="True"
-							/>
+							IsReadOnly="True" />
 					</Border>
-					
+
 					<Editor
 						Grid.Column="1"
 						x:Name="CodeEditor"
@@ -92,17 +91,18 @@
 						IsTextPredictionEnabled="False"
 						TextChanged="CodeEditor_TextChanged"
 						FontFamily="MPLUSCodeLatin"
-						
-						>
+						IsVisible="False">
 						<Editor.Behaviors>
 							<behaviors:EditorStoppedTypingBehavior
 								DelayMilliseconds="500"
 								StoppedTyping="EditorStoppedTypingBehavior_StoppedTyping" />
 						</Editor.Behaviors>
 					</Editor>
-					<!--<WebView
-					x:Name="CodeEditor"
-					Source="editor.html" />-->
+					
+					<WebView
+						x:Name="HtmlCodeEditor"
+						Grid.Column="1"
+						Source="editor.html" />
 				</Grid>
 			</ScrollView>
 
@@ -114,9 +114,8 @@
 					HorizontalOptions="Start"
 					Margin="5">
 					<Label
-						Text="Output" 
-						TextColor="White"
-						/>
+						Text="Output"
+						TextColor="White" />
 					<Border
 						HeightRequest="4"
 						StrokeThickness="0"
@@ -129,7 +128,7 @@
 					<Editor
 						x:Name="OutputLabel"
 						Margin="5"
-						IsReadOnly="True"
+						IsReadOnly="False"
 						AutoSize="TextChanges"
 						FontFamily="MPLUSCodeLatin"
 						FontSize="{Binding Value, Source={x:Reference fontSizeSlider}}"
