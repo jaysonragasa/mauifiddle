@@ -104,8 +104,8 @@
 
 			<WebView
 				x:Name="HtmlCodeEditor"
-				Grid.Row="1"
-				Source="editor.html" />
+				BackgroundColor="#FF16171D"
+				Grid.Row="1" />
 
 			<Grid
 				Grid.Row="2"
@@ -125,7 +125,8 @@
 				</VerticalStackLayout>
 
 				<ScrollView
-					Grid.Row="1">
+					Grid.Row="1"
+					MaximumHeightRequest="200">
 					<Editor
 						x:Name="OutputLabel"
 						Margin="5"

@@ -99,7 +99,7 @@ Say.Hello();";
 
 	async void LoadEditorHtml()
 	{
-		using var stream = await FileSystem.OpenAppPackageFileAsync("editor.html");
+		using var stream = await FileSystem.OpenAppPackageFileAsync("editorcodemirror.html");
 		using var reader = new StreamReader(stream);
 		var htmlString = reader.ReadToEnd();
 		HtmlCodeEditor.Source = new HtmlWebViewSource { Html = htmlString };
@@ -108,11 +108,13 @@ Say.Hello();";
 		{
 			string url = e.Url ?? string.Empty;
 
+			if (string.IsNullOrWhiteSpace(url)) return;
+
 			Debug.WriteLine(url);
 
 			if (url.StartsWith("callback://editor/?text="))
 			{
-				var content = Uri.UnescapeDataString(e.Url.Substring("callback://editor/?text=".Length));
+				var content = Uri.UnescapeDataString(url.Substring("callback://editor/?text=".Length));
 				e.Cancel = true;
 
 				CodeEditor.Text = content;
@@ -120,6 +122,7 @@ Say.Hello();";
 			else if (url.StartsWith("callback://editor/?status=done"))
 			{
 				NewCSharpCode();
+				e.Cancel = true;
 			}
 		};
 	}
