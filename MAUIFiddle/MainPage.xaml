@@ -59,7 +59,8 @@
 
 			<ScrollView
 				Orientation="Vertical"
-				Grid.Row="1">
+				Grid.Row="1"
+				IsVisible="False">
 				<Grid
 					BackgroundColor="#FF2A2A37"
 					ColumnDefinitions="auto, *">
@@ -98,13 +99,13 @@
 								StoppedTyping="EditorStoppedTypingBehavior_StoppedTyping" />
 						</Editor.Behaviors>
 					</Editor>
-					
-					<WebView
-						x:Name="HtmlCodeEditor"
-						Grid.Column="1"
-						Source="editor.html" />
 				</Grid>
 			</ScrollView>
+
+			<WebView
+				x:Name="HtmlCodeEditor"
+				Grid.Row="1"
+				Source="editor.html" />
 
 			<Grid
 				Grid.Row="2"

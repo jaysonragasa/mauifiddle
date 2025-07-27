@@ -33,7 +33,7 @@
 			window.editor.onDidChangeModelContent(function (event) {
 				const text = window.editor.getValue();
 				const content = encodeURIComponent(text);
-				window.location = "callback://editor?text=" + content;
+				window.location = "callback://editor/?text=" + content;
 			});
 
 			// Make accessible from MAUI
@@ -88,7 +88,7 @@
 
 			//window.editor.focus();
 
-			window.location = "callback://editor?status=done";
+			window.location = "callback://editor/?status=done";
 		});
 	</script>
 </body>
