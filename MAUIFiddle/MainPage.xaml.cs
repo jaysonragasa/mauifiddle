@@ -171,11 +171,11 @@ public partial class MainPage : ContentPage
 public class Say
 {
 	public static void Hello()
-		=> Console.WriteLine(""Hello World"");
+		=> Console.Write(""Hello"");
 }
-
 Say.Hello();
-
+Print("" World!"");
+PrintLn(""This is a simple C# code example. You can also directly call the CurrentPage too!"");
 ContentPage cp = new ContentPage();
 Image img = new Image() { Source = ""dotnet_bot.png"", HeightRequest = 185d, Aspect = Microsoft.Maui.Aspect.AspectFit };
 Label label = new Label() { Text = ""Welcome to &#10;.NET Multi-platform App UI"", HorizontalOptions = LayoutOptions.Center };
@@ -266,7 +266,8 @@ cp.Content = vsl;
 public class ScriptGlobals
 {
 	public CancellationToken CancellationToken { get; set; }
-	public Action<string> Print = Console.WriteLine;
+	public Action<string> PrintLn = Console.WriteLine;
+	public Action<string> Print = Console.Write;
 	public AppShell AppShell = (AppShell)App.Current.MainPage;
 	public ContentPage CurrentPage = (ContentPage)Shell.Current.CurrentPage;
 }
