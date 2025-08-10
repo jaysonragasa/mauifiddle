@@ -21,22 +21,14 @@ public partial class MainPage : ContentPage
 	public string CurrentFileFullPath
 	{
 		get => _currentFileFullPath;
-		set
-		{
-			_currentFileFullPath = value;
-			OnPropertyChanged(nameof(CurrentFileFullPath));
-		}
+		set => SetProperty(ref _currentFileFullPath, value);
 	}
 
 	bool _isRunning = false;
 	public bool IsRunning
 	{
 		get => _isRunning;
-		set
-		{
-			_isRunning = value;
-			OnPropertyChanged(nameof(IsRunning));
-		}
+		set => SetProperty(ref _isRunning, value);
 	}
 	#endregion
 
@@ -51,9 +43,8 @@ public partial class MainPage : ContentPage
 	{
 		InitializeComponent();
 		InitCommands();
-		BindingContext = this;
 
-		//CodeEditor.Text = @"Print(""Start writing your code"")";
+		BindingContext = this;
 
 		fontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
 		cbUseLegacyEditor.CheckedChanged += CbUseLegacyEditor_CheckedChanged;
@@ -137,7 +128,7 @@ public partial class MainPage : ContentPage
 	#endregion
 
 	#region private methods
-	void InitCommands()
+	private void InitCommands()
 	{
 		RunCommand = new AsyncRelayCommand(RunCode);
 		NewCommand = new AsyncRelayCommand(NewCodeAsync);
@@ -235,6 +226,15 @@ ContentPage cp = new()
 			CodeEditor.Text = code;
 		else
 			await SendCodeToHtmlEditor(code);
+	}
+
+	private void SetProperty<T>(ref T storage, T value, [System.Runtime.CompilerServices.CallerMemberName] string name = null)
+	{
+		if (!EqualityComparer<T>.Default.Equals(storage, value))
+		{
+			storage = value;
+			OnPropertyChanged(name);
+		}
 	}
 	#endregion
 
@@ -397,12 +397,6 @@ public class CSharpEvaluator
 
 		try
 		{
-			//var script = CSharpScript.Create(
-			//	code: code,
-			//	options: BuildDefaultScriptOptions(),
-			//	globalsType: typeof(ScriptGlobals)
-			//	);
-			//var state = await script.RunAsync(globals, globals.CancellationToken);
 			await CSharpScript.EvaluateAsync(
 				code: code,
 				options: BuildDefaultScriptOptions(),
