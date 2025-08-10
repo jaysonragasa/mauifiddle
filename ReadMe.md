@@ -1,4 +1,6 @@
-﻿### MAUI C# Fiddle 🚀
+﻿![preview](https://github.com/jaysonragasa/mauifiddle/blob/cd84e9cb7971381673872bdf086db569913227fc/prev.gif?raw=true)
+
+### MAUI C# Fiddle 🚀
 
 MAUI C# Fiddle is a lightweight and versatile code runner for **Windows** and **Android**, designed for developers, students, and hobbyists who need to quickly test C# code snippets.
 
