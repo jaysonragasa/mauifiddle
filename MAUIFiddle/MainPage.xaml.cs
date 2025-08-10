@@ -12,6 +12,34 @@ namespace MAUIFiddle;
 
 public partial class MainPage : ContentPage
 {
+	#region fields
+	bool _isInititalized = false;
+	#endregion
+
+	#region properties
+	string _currentFileFullPath;
+	public string CurrentFileFullPath
+	{
+		get => _currentFileFullPath;
+		set
+		{
+			_currentFileFullPath = value;
+			OnPropertyChanged(nameof(CurrentFileFullPath));
+		}
+	}
+
+	bool _isRunning = false;
+	public bool IsRunning
+	{
+		get => _isRunning;
+		set
+		{
+			_isRunning = value;
+			OnPropertyChanged(nameof(IsRunning));
+		}
+	}
+	#endregion
+
 	#region commands
 	public ICommand RunCommand { get; set; }
 	public ICommand NewCommand { get; set; }
@@ -25,7 +53,7 @@ public partial class MainPage : ContentPage
 		InitCommands();
 		BindingContext = this;
 
-		CodeEditor.Text = @"Print(""Start writing your code"")";
+		//CodeEditor.Text = @"Print(""Start writing your code"")";
 
 		fontSizeSlider.ValueChanged += FontSizeSlider_ValueChanged;
 		cbUseLegacyEditor.CheckedChanged += CbUseLegacyEditor_CheckedChanged;
@@ -44,12 +72,6 @@ public partial class MainPage : ContentPage
 
 	public async Task SaveCodeAsync()
 	{
-		//var code = CodeEditor.Text;
-		//var fileName = "MAUIFiddle.cs";
-		//var filePath = Path.Combine(FileSystem.CacheDirectory, fileName);
-		//await File.WriteAllTextAsync(filePath, code);
-		//await Shell.Current.DisplayAlert("File Saved", $"Your code has been saved to {filePath}", "OK");
-
 		var content = CodeEditor.Text;
 
 		// Prompt the user for a file path using CommunityToolkit FileSaver
@@ -83,7 +105,14 @@ public partial class MainPage : ContentPage
 
 			var text = await reader.ReadToEndAsync();
 
-			CodeEditor.Text = text;
+			if (cbUseLegacyEditor.IsChecked)
+			{
+				CodeEditor.Text = text;
+			}
+			else
+			{
+				await SendCodeToHtmlEditor(text);
+			}
 		}
 		else
 		{
@@ -97,7 +126,13 @@ public partial class MainPage : ContentPage
 	{
 		base.OnAppearing();
 
-		LoadEditorHtml();
+		IsRunning = true;
+
+		if (!_isInititalized)
+		{
+			LoadHtmlEditor();
+			_isInititalized = true;
+		}
 	}
 	#endregion
 
@@ -112,11 +147,13 @@ public partial class MainPage : ContentPage
 
 	async Task ExecuteCodeAsync()
 	{
+		IsRunning = true;
+
 		var code = CodeEditor.Text;
 
 		try
 		{
-			var op = await Tissuevaluator.Tissueluate(code, default);
+			var op = await CSharpEvaluator.Tissueluate(code, default);
 
 			OutputLabel.TextColor = Color.FromArgb("#FFDCD7BA");
 			OutputLabel.Text = op;
@@ -126,9 +163,11 @@ public partial class MainPage : ContentPage
 			OutputLabel.TextColor = Color.FromArgb("#FFE82424");
 			OutputLabel.Text = ex.Message;
 		}
+
+		IsRunning = false;
 	}
 
-	async void LoadEditorHtml()
+	async void LoadHtmlEditor()
 	{
 		using var stream = await FileSystem.OpenAppPackageFileAsync("editorcodemirror.html");
 		using var reader = new StreamReader(stream);
@@ -176,15 +215,19 @@ public class Say
 Say.Hello();
 Print("" World!"");
 PrintLn(""This is a simple C# code example. You can also directly call the CurrentPage too!"");
-ContentPage cp = new ContentPage();
-Image img = new Image() { Source = ""dotnet_bot.png"", HeightRequest = 185d, Aspect = Microsoft.Maui.Aspect.AspectFit };
-Label label = new Label() { Text = ""Welcome to &#10;.NET Multi-platform App UI"", HorizontalOptions = LayoutOptions.Center };
-Button btn = new() { Text = ""Back"", HorizontalOptions = LayoutOptions.Center }; btn.Clicked += (s, e) => CurrentPage.Navigation.PopAsync();
-VerticalStackLayout vsl = new() { Spacing = 25 };
-vsl.Children.Add(img);
-vsl.Children.Add(label);
-vsl.Children.Add(btn);
-cp.Content = vsl;
+ContentPage cp = new()
+{
+	Content = new VerticalStackLayout()
+	{
+		Spacing = 25,
+		Children =
+		{
+			new Image() { HeightRequest = 185d }.Source(""dotnet_bot.png"").Aspect(Microsoft.Maui.Aspect.AspectFit),
+			new Label() { HorizontalOptions = LayoutOptions.Center }.Text(""Welcome to &#10;.NET Multi-platform App UI""),
+			new Button() { HorizontalOptions = LayoutOptions.Center }.Text(""Back"").Invoke(btn => btn.Clicked += (s,e) => CurrentPage.Navigation.PopAsync())
+		}
+	}
+};
 // CurrentPage.Navigation.PushAsync(cp);
 // CurrentPage.Navigation.PushModalAsync(cp);";
 
@@ -272,7 +315,7 @@ public class ScriptGlobals
 	public ContentPage CurrentPage = (ContentPage)Shell.Current.CurrentPage;
 }
 
-public class Tissuevaluator
+public class CSharpEvaluator
 {
 	static CancellationTokenSource _cts = new CancellationTokenSource();
 
@@ -291,7 +334,9 @@ public class Tissuevaluator
 
 			//typeof(Microsoft.Maui.Controls.View).Assembly,
 			typeof(Microsoft.Maui.Controls.VisualElement).Assembly,
-			typeof(Microsoft.Maui.Controls.Xaml.Extensions).Assembly
+			typeof(Microsoft.Maui.Controls.Xaml.Extensions).Assembly,
+			typeof(CommunityToolkit.Maui.Markup.ImageExtensions).Assembly,
+			//typeof(CommunityToolkit.Maui.Markup.LabelExtensions).Assembly,
 		};
 
 		var defaultNamespaces = new[]
@@ -306,6 +351,7 @@ public class Tissuevaluator
 			"System.Threading",
 			"System.Threading.Tasks",
 			"System.Reflection",
+			"System.Globalization",
 
             // Regex + Net + Http
             "System.Text.RegularExpressions",
@@ -319,6 +365,7 @@ public class Tissuevaluator
             // MAUI UI types
             "Microsoft.Maui.Controls",
 			"Microsoft.Maui.Controls.Xaml",
+			"CommunityToolkit.Maui.Markup"
 			//"Microsoft.Maui.Essentials", // Note: Essentials is now merged
 		};
 

@@ -33,7 +33,6 @@
 			<!--toolbar-->
 			<Grid
 				HeightRequest="32"
-				ColumnDefinitions="*, *"
 				Padding="10,0">
 				<VerticalStackLayout>
 					<!--<Label
@@ -48,7 +47,8 @@
 				TextColor="White" />-->
 					<Label />
 				</VerticalStackLayout>
-				<HorizontalStackLayout>
+				<HorizontalStackLayout
+					HorizontalOptions="End">
 					<HorizontalStackLayout>
 						<CheckBox
 							x:Name="cbUseLegacyEditor"
@@ -81,7 +81,9 @@
 						Margin="20,4,15,4" />
 
 					<ctl:TemplatedButton
-						Command="{Binding RunCommand}">
+						Command="{Binding RunCommand}"
+						Margin="0,0,10,0"
+						>
 						<HorizontalStackLayout>
 							<Image
 								Source="playbuttonred.png"
@@ -205,7 +207,17 @@
 			<Grid
 				Grid.Row="4"
 				HeightRequest="32">
-
+				<HorizontalStackLayout
+					Margin="5,0">
+					<ActivityIndicator 
+						WidthRequest="24"
+						HeightRequest="24"
+						VerticalOptions="Center"
+						HorizontalOptions="Center"
+						IsVisible="{Binding IsRunning}"
+						IsRunning="{Binding IsRunning}"
+						/>
+				</HorizontalStackLayout>
 			</Grid>
 		</Grid>
 	</Grid>

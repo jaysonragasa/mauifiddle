@@ -1,26 +1,28 @@
 ﻿using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Markup;
 using Microsoft.Extensions.Logging;
 
 namespace MAUIFiddle
 {
-    public static class MauiProgram
-    {
-        public static MauiApp CreateMauiApp()
-        {
-            var builder = MauiApp.CreateBuilder();
-            builder
-                .UseMauiApp<App>()
+	public static class MauiProgram
+	{
+		public static MauiApp CreateMauiApp()
+		{
+			var builder = MauiApp.CreateBuilder();
+			builder
+				.UseMauiApp<App>()
 				.UseMauiCommunityToolkit()
+				.UseMauiCommunityToolkitMarkup()
 				.ConfigureFonts(fonts =>
-                {
-                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+				{
+					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+					fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 					fonts.AddFont("MPLUSCodeLatin-VariableFont.ttf", "MPLUSCodeLatin");
-                    fonts.AddFont("SourceCodePro-VariableFont.ttf", "SourceCodePro");
+					fonts.AddFont("SourceCodePro-VariableFont.ttf", "SourceCodePro");
 				});
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+			builder.Logging.AddDebug();
 #endif
 
 #if WINDOWS
@@ -31,13 +33,13 @@ namespace MAUIFiddle
 #endif
 
 #if ANDROID
-    builder.ConfigureMauiHandlers(handlers =>
-    {
-        handlers.AddHandler(typeof(Editor), typeof(MAUIFiddle.NoWrapEditorHandler));
-    });
+			builder.ConfigureMauiHandlers(handlers =>
+			{
+				handlers.AddHandler(typeof(Editor), typeof(MAUIFiddle.NoWrapEditorHandler));
+			});
 #endif
 
 			return builder.Build();
-        }
-    }
+		}
+	}
 }
