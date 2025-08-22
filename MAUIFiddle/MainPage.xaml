@@ -133,7 +133,7 @@
 						AutoSize="TextChanges"
 						IsTextPredictionEnabled="False"
 						TextChanged="CodeEditor_TextChanged"
-						FontFamily="MPLUSCodeLatin">
+						FontFamily="SourceCodePro">
 						<Editor.Behaviors>
 							<behaviors:EditorStoppedTypingBehavior
 								DelayMilliseconds="500"
@@ -198,7 +198,7 @@
 						Margin="5"
 						IsReadOnly="False"
 						AutoSize="TextChanges"
-						FontFamily="MPLUSCodeLatin"
+						FontFamily="SourceCodePro"
 						FontSize="{Binding Value, Source={x:Reference fontSizeSlider}}"
 						TextColor="#FFC3D7A8" />
 				</ScrollView>
